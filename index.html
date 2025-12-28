@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简历生成器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #f0f0f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左侧编辑区 */
+        .editor-panel {
+            width: 380px;
+            background: white;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .editor-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .editor-panel::-webkit-scrollbar-thumb {
+            background: #999;
+            border-radius: 3px;
+        }
+
+        .editor-header {
+            text-align: center;
+            padding: 15px;
+            background: #000;
+            color: white;
+        }
+
+        .editor-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .module-toggle {
+            margin: 15px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .module-toggle h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .module-order-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            background: white;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .module-order-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .module-order-item .drag-handle {
+            cursor: move;
+            margin-right: 8px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .module-order-item input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .module-order-item label {
+            flex: 1;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .module-order-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .module-order-buttons button {
+            padding: 2px 6px;
+            font-size: 10px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .module-order-buttons button:hover {
+            background: #d0d0d0;
+        }
+
+        .module-order-buttons button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .form-section {
+            margin: 0 15px 15px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .form-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 3px;
+            color: #666;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #000;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .dynamic-list {
+            margin-top: 8px;
+        }
+
+        .dynamic-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+            padding: 3px 8px;
+            font-size: 10px;
+        }
+
+        .btn-add {
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .export-buttons {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 12px;
+            border-top: 1px solid #ddd;
+            margin: 0 -15px -15px -15px;
+        }
+
+        .export-buttons .btn {
+            width: 100%;
+            margin-bottom: 6px;
+        }
+
+        .json-buttons {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .json-buttons .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* 右侧预览区 */
+        .preview-panel {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #e0e0e0;
+        }
+
+        .preview-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-panel::-webkit-scrollbar-thumb {
+            background: #999;
+            border-radius: 4px;
+        }
+
+        /* 简历样式 - 严格A4尺寸 */
+        .resume {
+            width: 210mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            background: white;
+            padding: 12mm 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 头像在右上角 - 小尺寸长方形 */
+        .avatar-container {
+            position: absolute;
+            top: 8mm;
+            right: 15mm;
+            width: 25mm;
+            height: 32mm;
+        }
+
+        .avatar-upload {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            background: #f5f5f5;
+            position: relative;
+        }
+
+        .avatar-upload img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-upload .placeholder {
+            font-size: 9px;
+            color: #bbb;
+            text-align: center;
+            padding: 5px;
+            line-height: 1.3;
+        }
+
+        .avatar-upload input[type="file"] {
+            display: none;
+        }
+
+        .header-content {
+            padding-right: 30mm;
+        }
+
+        .resume-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #000;
+            letter-spacing: 2px;
+        }
+
+        .resume-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 15px;
+            font-size: 10px;
+            color: #333;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .contact-item svg {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
+
+        .resume-section {
+            margin-bottom: 14px;
+        }
+
+        #section-education {
+            margin-top: 20px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 3px;
+        }
+
+        .section-title svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* 紧凑布局 */
+        .education-item,
+        .work-item,
+        .project-item,
+        .research-item {
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .education-item:last-child,
+        .work-item:last-child,
+        .project-item:last-child,
+        .research-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+
+        .item-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .item-date {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .item-subtitle {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .item-description {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* 教育经历一行显示 */
+        .education-item .item-header {
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .education-main {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 15px;
+            flex: 1;
+        }
+
+        .education-main span {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .education-main .item-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .skill-tag {
+            padding: 3px 8px;
+            background: #f5f5f5;
+            border-radius: 3px;
+            font-size: 11px;
+            color: #333;
+        }
+
+        .awards-list,
+        .portfolio-list,
+        .other-list {
+            list-style: none;
+        }
+
+        .awards-list li,
+        .portfolio-list li,
+        .other-list li {
+            font-size: 11px;
+            color: #666;
+            padding: 3px 0;
+            padding-left: 12px;
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .awards-list li::before,
+        .portfolio-list li::before,
+        .other-list li::before {
+            content: '▪';
+            position: absolute;
+            left: 0;
+            color: #000;
+        }
+
+        .intro-text {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                height: auto;
+            }
+
+            .editor-panel {
+                display: none;
+            }
+
+            .preview-panel {
+                padding: 0;
+                overflow: visible;
+            }
+
+            .resume {
+                box-shadow: none;
+            }
+
+            .avatar-upload input[type="file"] {
+                display: none;
+            }
+        }
+
+        /* 文件上传隐藏 */
+        #json-import {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧编辑区 -->
+        <div class="editor-panel">
+            <div class="editor-header">
+                <h1>简历生成器</h1>
+            </div>
+
+            <!-- JSON导入导出 -->
+            <div class="form-section">
+                <h3>💾 数据管理</h3>
+                <div class="json-buttons">
+                    <button class="btn btn-success" onclick="exportJSON()">导出JSON</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('json-import').click()">导入JSON</button>
+                    <input type="file" id="json-import" accept=".json" onchange="importJSON(event)">
+                </div>
+                <button class="btn btn-danger" style="width: 100%; margin-top: 8px;" onclick="clearCache()">🗑️ 清除本地缓存</button>
+            </div>
+
+            <!-- 模块开关 -->
+            <div class="module-toggle">
+                <h3>📋 模块选择与排序</h3>
+                <div id="module-order-list"></div>
+            </div>
+
+            <!-- 基本信息 -->
+            <div class="form-section">
+                <h3>👤 基本信息</h3>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="input-name" placeholder="请输入姓名" value="张三">
+                </div>
+                <div class="form-group">
+                    <label>求职头衔</label>
+                    <input type="text" id="input-job-title" placeholder="如：软件工程师" value="软件工程师">
+                </div>
+                <div class="form-group">
+                    <label>电话</label>
+                    <input type="text" id="input-phone" placeholder="手机号码" value="138-0000-0000">
+                </div>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="text" id="input-email" placeholder="邮箱地址" value="zhangsan@email.com">
+                </div>
+                <div class="form-group">
+                    <label>地址</label>
+                    <input type="text" id="input-location" placeholder="所在城市" value="北京市">
+                </div>
+                <div class="form-group">
+                    <label>个人网站</label>
+                    <input type="text" id="input-website" placeholder="个人博客/网站" value="">
+                </div>
+                <div class="form-group">
+                    <label>GitHub</label>
+                    <input type="text" id="input-github" placeholder="GitHub用户名" value="zhangsan">
+                </div>
+            </div>
+
+            <!-- 教育经历 -->
+            <div class="form-section">
+                <h3>🎓 教育经历</h3>
+                <div id="education-list"></div>
+                <button class="btn btn-secondary btn-add" onclick="addEducation()">+ 添加教育经历</button>
+            </div>
+
+            <!-- 专业技能 -->
+            <div class="form-section">
+                <h3>💼 专业技能</h3>
+                <div class="form-group">
+                    <label>技能描述</label>
+                    <textarea id="input-skills" placeholder="请自由描述您的专业技能和特长">熟练掌握 Java、Python、JavaScript 等编程语言；精通 React、Vue 前端框架；熟悉 Node.js 后端开发；具备 MySQL 数据库设计和优化能力；熟练使用 Git 版本控制工具；了解 Docker 容器化部署和 CI/CD 流程。</textarea>
+                </div>
+            </div>
+
+            <!-- 工作经历 -->
+            <div class="form-section">
+                <h3>💼 工作经历</h3>
+                <div id="work-list"></div>
+                <button class="btn btn-secondary btn-add" onclick="addWork()">+ 添加工作经历</button>
+            </div>
+
+            <!-- 项目经历 -->
+            <div class="form-section">
+                <h3>🔧 项目经历</h3>
+                <div id="project-list"></div>
+                <button class="btn btn-secondary btn-add" onclick="addProject()">+ 添加项目经历</button>
+            </div>
+
+            <!-- 荣誉奖项 -->
+            <div class="form-section">
+                <h3>🏆 荣誉奖项</h3>
+                <div class="form-group">
+                    <label>奖项列表（每行一个）</label>
+                    <textarea id="input-awards" placeholder="每行一个奖项">2023年 国家奖学金
+2022年 优秀学生干部
+2021年 学业一等奖学金</textarea>
+                </div>
+            </div>
+
+            <!-- 研究经历 -->
+            <div class="form-section">
+                <h3>🔬 研究经历</h3>
+                <div id="research-list"></div>
+                <button class="btn btn-secondary btn-add" onclick="addResearch()">+ 添加研究经历</button>
+            </div>
+
+            <!-- 作品集 -->
+            <div class="form-section">
+                <h3>🎨 作品集</h3>
+                <div class="form-group">
+                    <label>作品列表（每行一个）</label>
+                    <textarea id="input-portfolio" placeholder="每行一个作品">GitHub: github.com/zhangsan
+个人博客: zhangsan.blog</textarea>
+                </div>
+            </div>
+
+            <!-- 求职意向 -->
+            <div class="form-section">
+                <h3>🎯 求职意向</h3>
+                <div class="form-group">
+                    <label>期望职位</label>
+                    <input type="text" id="input-position" placeholder="期望职位" value="软件工程师">
+                </div>
+                <div class="form-group">
+                    <label>期望城市</label>
+                    <input type="text" id="input-city" placeholder="期望城市" value="北京/上海/深圳">
+                </div>
+                <div class="form-group">
+                    <label>期望薪资</label>
+                    <input type="text" id="input-salary" placeholder="期望薪资" value="面议">
+                </div>
+            </div>
+
+            <!-- 其他经历 -->
+            <div class="form-section">
+                <h3>📝 其他经历</h3>
+                <div class="form-group">
+                    <label>经历列表（每行一个）</label>
+                    <textarea id="input-other" placeholder="每行一个经历">2020-2022 校学生会主席
+2019-2021 校志愿者服务队</textarea>
+                </div>
+            </div>
+
+            <!-- 个人简介 -->
+            <div class="form-section">
+                <h3>✨ 个人简介</h3>
+                <div class="form-group">
+                    <label>简介内容</label>
+                    <textarea id="input-intro">热爱编程，具有扎实的计算机基础知识。在校期间多次参与项目开发，具备良好的团队协作能力和问题解决能力。对新技术充满热情，持续学习提升自己。</textarea>
+                </div>
+            </div>
+
+            <!-- 导出按钮 -->
+            <div class="export-buttons">
+                <button class="btn btn-primary" onclick="exportPDF()">📄 导出 PDF</button>
+                <button class="btn btn-secondary" onclick="exportImage()">🖼️ 导出图片</button>
+            </div>
+        </div>
+
+        <!-- 右侧预览区 -->
+        <div class="preview-panel">
+            <div class="resume" id="resume">
+                <!-- 头像 - 右上角 -->
+                <div class="avatar-container" id="resume-avatar">
+                    <div class="avatar-upload" onclick="document.getElementById('avatar-input').click()">
+                        <div class="placeholder">点击上传照片</div>
+                        <img id="avatar-img" class="hidden" alt="头像">
+                    </div>
+                    <input type="file" id="avatar-input" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+                </div>
+
+                <!-- 头部内容 -->
+                <div class="header-content">
+                    <div class="resume-name" id="resume-name">张三</div>
+                    <div class="resume-title" id="resume-job-title">软件工程师</div>
+                    <div class="contact-info" id="resume-contact">
+                        <div class="contact-item" id="contact-phone">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                            <span id="resume-phone">138-0000-0000</span>
+                        </div>
+                        <div class="contact-item" id="contact-email">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                            <span id="resume-email">zhangsan@email.com</span>
+                        </div>
+                        <div class="contact-item" id="contact-location">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            <span id="resume-location">北京市</span>
+                        </div>
+                        <div class="contact-item hidden" id="contact-website">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                            <span id="resume-website"></span>
+                        </div>
+                        <div class="contact-item hidden" id="contact-github">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.17.66-.45v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.54.67.45C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/></svg>
+                            <span id="resume-github"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 教育经历 -->
+                <div class="resume-section" id="section-education">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                        教育经历
+                    </div>
+                    <div id="resume-education"></div>
+                </div>
+
+                <!-- 专业技能 -->
+                <div class="resume-section" id="section-skills">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/></svg>
+                        专业技能
+                    </div>
+                    <div class="item-description" id="resume-skills"></div>
+                </div>
+
+                <!-- 工作经历 -->
+                <div class="resume-section" id="section-work">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                        工作经历
+                    </div>
+                    <div id="resume-work"></div>
+                </div>
+
+                <!-- 项目经历 -->
+                <div class="resume-section" id="section-project">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2.06 11L15 15.28 12.06 17l.78-3.33-2.59-2.24 3.41-.29L15 8l1.34 3.14 3.41.29-2.59 2.24.78 3.33z"/></svg>
+                        项目经历
+                    </div>
+                    <div id="resume-project"></div>
+                </div>
+
+                <!-- 荣誉奖项 -->
+                <div class="resume-section" id="section-awards">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+                        荣誉奖项
+                    </div>
+                    <ul class="awards-list" id="resume-awards"></ul>
+                </div>
+
+                <!-- 研究经历 -->
+                <div class="resume-section" id="section-research">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+                        研究经历
+                    </div>
+                    <div id="resume-research"></div>
+                </div>
+
+                <!-- 作品集 -->
+                <div class="resume-section" id="section-portfolio">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V7h11v4zm5 5h-4V7h4v9z"/></svg>
+                        作品集
+                    </div>
+                    <ul class="portfolio-list" id="resume-portfolio"></ul>
+                </div>
+
+                <!-- 求职意向 -->
+                <div class="resume-section" id="section-objective">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        求职意向
+                    </div>
+                    <div class="education-item">
+                        <div class="item-header">
+                            <div class="item-title" id="resume-position">软件工程师</div>
+                        </div>
+                        <div class="education-info">
+                            <span>期望城市: <strong id="resume-city">北京/上海/深圳</strong></span>
+                            <span>期望薪资: <strong id="resume-salary">面议</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 其他经历 -->
+                <div class="resume-section" id="section-other">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        其他经历
+                    </div>
+                    <ul class="other-list" id="resume-other"></ul>
+                </div>
+
+                <!-- 个人简介 -->
+                <div class="resume-section" id="section-intro">
+                    <div class="section-title">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        个人简介
+                    </div>
+                    <div class="intro-text" id="resume-intro"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据存储
+        let resumeData = {
+            basic: {
+                name: '张三',
+                jobTitle: '软件工程师',
+                phone: '138-0000-0000',
+                email: 'zhangsan@email.com',
+                location: '北京市',
+                website: '',
+                github: 'zhangsan'
+            },
+            education: [
+                { school: '清华大学', major: '计算机科学与技术', degree: '学士', time: '2019.09 - 2023.06' }
+            ],
+            skills: 'Java, Python, JavaScript, React, Vue, Node.js, MySQL, Git',
+            work: [
+                { company: '某某科技公司', position: '前端开发工程师', time: '2023.07 - 至今', description: '负责公司核心产品的前端开发工作，使用React技术栈。' }
+            ],
+            project: [
+                { name: '在线教育平台', role: '前端负责人', time: '2022.03 - 2022.06', description: '使用Vue3开发在线教育平台，实现视频播放、在线答题等功能。' }
+            ],
+            awards: '2023年 国家奖学金\n2022年 优秀学生干部\n2021年 学业一等奖学金',
+            research: [
+                { title: '深度学习在图像识别中的应用', role: '研究助理', time: '2021.09 - 2022.01', description: '参与导师的科研项目，负责数据预处理和模型训练。' }
+            ],
+            portfolio: 'GitHub: github.com/zhangsan\n个人博客: zhangsan.blog',
+            objective: {
+                position: '软件工程师',
+                city: '北京/上海/深圳',
+                salary: '面议'
+            },
+            other: '2020-2022 校学生会主席\n2019-2021 校志愿者服务队',
+            intro: '热爱编程，具有扎实的计算机基础知识。在校期间多次参与项目开发，具备良好的团队协作能力和问题解决能力。对新技术充满热情，持续学习提升自己。'
+        };
+
+        let avatarDataUrl = '';
+
+        // 模块顺序配置
+        let moduleOrder = [
+            { id: 'skills', name: '专业技能', section: 'section-skills', toggle: 'toggle-skills', visible: true },
+            { id: 'work', name: '工作经历', section: 'section-work', toggle: 'toggle-work', visible: true },
+            { id: 'project', name: '项目经历', section: 'section-project', toggle: 'toggle-project', visible: true },
+            { id: 'awards', name: '荣誉奖项', section: 'section-awards', toggle: 'toggle-awards', visible: true },
+            { id: 'research', name: '研究经历', section: 'section-research', toggle: 'toggle-research', visible: true },
+            { id: 'portfolio', name: '作品集', section: 'section-portfolio', toggle: 'toggle-portfolio', visible: true },
+            { id: 'objective', name: '求职意向', section: 'section-objective', toggle: 'toggle-objective', visible: false },
+            { id: 'other', name: '其他经历', section: 'section-other', toggle: 'toggle-other', visible: false },
+            { id: 'intro', name: '个人简介', section: 'section-intro', toggle: 'toggle-intro', visible: false }
+        ];
+
+        // 固定模块（不可调整顺序）
+        const fixedModules = {
+            avatar: { id: 'toggle-avatar', name: '人像照', section: 'resume-avatar', visible: true },
+            contact: { id: 'toggle-contact', name: '基本信息', section: 'resume-contact', visible: true },
+            education: { id: 'toggle-education', name: '教育经历', section: 'section-education', visible: true }
+        };
+
+        // 渲染模块顺序列表
+        function renderModuleOrder() {
+            const container = document.getElementById('module-order-list');
+
+            // 渲染固定模块（无上下移动按钮）
+            const fixedHtml = Object.values(fixedModules).map(module => `
+                <div class="module-order-item" style="background: #e8e8e8;">
+                    <span class="drag-handle" style="opacity: 0.3;">☰</span>
+                    <input type="checkbox" id="${module.id}" ${module.visible ? 'checked' : ''} onchange="toggleFixedModule('${module.id}')">
+                    <label for="${module.id}">${module.name}</label>
+                    <div class="module-order-buttons">
+                        <button disabled style="opacity: 0.3;">固定</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // 渲染可调整顺序的模块
+            const reorderableHtml = moduleOrder.map((module, index) => `
+                <div class="module-order-item">
+                    <span class="drag-handle">☰</span>
+                    <input type="checkbox" id="${module.toggle}" ${module.visible ? 'checked' : ''} onchange="toggleModuleVisibility(${index})">
+                    <label for="${module.toggle}">${module.name}</label>
+                    <div class="module-order-buttons">
+                        <button onclick="moveModuleUp(${index})" ${index === 0 ? 'disabled' : ''}>↑</button>
+                        <button onclick="moveModuleDown(${index})" ${index === moduleOrder.length - 1 ? 'disabled' : ''}>↓</button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = fixedHtml + reorderableHtml;
+        }
+
+        // 切换固定模块的可见性
+        function toggleFixedModule(toggleId) {
+            const moduleKey = Object.keys(fixedModules).find(key => fixedModules[key].id === toggleId);
+            if (moduleKey) {
+                fixedModules[moduleKey].visible = !fixedModules[moduleKey].visible;
+                const element = document.getElementById(fixedModules[moduleKey].section);
+                if (element) {
+                    element.classList.toggle('hidden', !fixedModules[moduleKey].visible);
+                }
+                saveToLocalStorage();
+            }
+        }
+
+        // 上移模块
+        function moveModuleUp(index) {
+            if (index > 0) {
+                [moduleOrder[index - 1], moduleOrder[index]] = [moduleOrder[index], moduleOrder[index - 1]];
+                renderModuleOrder();
+                reorderSections();
+                saveToLocalStorage();
+            }
+        }
+
+        // 下移模块
+        function moveModuleDown(index) {
+            if (index < moduleOrder.length - 1) {
+                [moduleOrder[index], moduleOrder[index + 1]] = [moduleOrder[index + 1], moduleOrder[index]];
+                renderModuleOrder();
+                reorderSections();
+                saveToLocalStorage();
+            }
+        }
+
+        // 切换模块可见性
+        function toggleModuleVisibility(index) {
+            moduleOrder[index].visible = !moduleOrder[index].visible;
+            const module = moduleOrder[index];
+            const element = document.getElementById(module.section);
+            if (element) {
+                element.classList.toggle('hidden', !module.visible);
+            }
+            saveToLocalStorage();
+        }
+
+        // 重新排序简历预览区的模块
+        function reorderSections() {
+            const resume = document.getElementById('resume');
+            const sections = {};
+
+            // 收集所有section
+            moduleOrder.forEach(module => {
+                const element = document.getElementById(module.section);
+                if (element) {
+                    sections[module.section] = element;
+                }
+            });
+
+            // 找到教育经历section的位置作为参考点
+            const educationSection = document.getElementById('section-education');
+            if (educationSection) {
+                // 按照moduleOrder的顺序重新插入
+                moduleOrder.forEach(module => {
+                    const element = sections[module.section];
+                    if (element && element !== educationSection) {
+                        resume.appendChild(element);
+                    }
+                });
+            }
+        }
+
+        // 从localStorage加载数据
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('resumeData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+
+                    // 加载模块顺序
+                    if (data.moduleOrder) {
+                        moduleOrder = data.moduleOrder;
+                    }
+
+                    // 加载固定模块配置
+                    if (data.fixedModules) {
+                        Object.assign(fixedModules, data.fixedModules);
+                    }
+
+                    return data;
+                }
+            } catch (e) {
+                console.error('加载数据失败:', e);
+            }
+            return null;
+        }
+
+        // 保存到localStorage
+        function saveToLocalStorage() {
+            try {
+                collectData();
+                const dataToSave = {
+                    ...resumeData,
+                    avatar: avatarDataUrl,
+                    moduleOrder: moduleOrder,
+                    fixedModules: fixedModules
+                };
+                localStorage.setItem('resumeData', JSON.stringify(dataToSave));
+            } catch (e) {
+                console.error('保存数据失败:', e);
+            }
+        }
+
+        // 初始化
+        function init() {
+            // 尝试从localStorage加载
+            const savedData = loadFromLocalStorage();
+            if (savedData) {
+                resumeData = {
+                    basic: savedData.basic || resumeData.basic,
+                    education: savedData.education || resumeData.education,
+                    skills: savedData.skills || resumeData.skills,
+                    work: savedData.work || resumeData.work,
+                    project: savedData.project || resumeData.project,
+                    awards: savedData.awards || resumeData.awards,
+                    research: savedData.research || resumeData.research,
+                    portfolio: savedData.portfolio || resumeData.portfolio,
+                    objective: savedData.objective || resumeData.objective,
+                    other: savedData.other || resumeData.other,
+                    intro: savedData.intro || resumeData.intro
+                };
+
+                if (savedData.avatar) {
+                    avatarDataUrl = savedData.avatar;
+                    const img = document.getElementById('avatar-img');
+                    const placeholder = document.querySelector('.avatar-upload .placeholder');
+                    img.src = avatarDataUrl;
+                    img.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+            }
+
+            loadDataToForm();
+            renderEducation();
+            renderWork();
+            renderProject();
+            renderResearch();
+            updatePreview();
+
+            // 渲染模块顺序列表
+            renderModuleOrder();
+            // 应用模块可见性和顺序
+            applyModuleVisibility();
+            reorderSections();
+
+            setupListeners();
+        }
+
+        // 应用模块可见性
+        function applyModuleVisibility() {
+            // 应用固定模块可见性
+            Object.values(fixedModules).forEach(module => {
+                const element = document.getElementById(module.section);
+                if (element) {
+                    element.classList.toggle('hidden', !module.visible);
+                }
+            });
+
+            // 应用可调整模块可见性
+            moduleOrder.forEach(module => {
+                const element = document.getElementById(module.section);
+                if (element) {
+                    element.classList.toggle('hidden', !module.visible);
+                }
+            });
+        }
+
+        // 加载数据到表单
+        function loadDataToForm() {
+            document.getElementById('input-name').value = resumeData.basic.name;
+            document.getElementById('input-job-title').value = resumeData.basic.jobTitle;
+            document.getElementById('input-phone').value = resumeData.basic.phone;
+            document.getElementById('input-email').value = resumeData.basic.email;
+            document.getElementById('input-location').value = resumeData.basic.location;
+            document.getElementById('input-website').value = resumeData.basic.website;
+            document.getElementById('input-github').value = resumeData.basic.github;
+            document.getElementById('input-skills').value = resumeData.skills;
+            document.getElementById('input-awards').value = resumeData.awards;
+            document.getElementById('input-portfolio').value = resumeData.portfolio;
+            document.getElementById('input-position').value = resumeData.objective.position;
+            document.getElementById('input-city').value = resumeData.objective.city;
+            document.getElementById('input-salary').value = resumeData.objective.salary;
+            document.getElementById('input-other').value = resumeData.other;
+            document.getElementById('input-intro').value = resumeData.intro;
+        }
+
+        // 从表单收集数据
+        function collectData() {
+            resumeData.basic = {
+                name: document.getElementById('input-name').value,
+                jobTitle: document.getElementById('input-job-title').value,
+                phone: document.getElementById('input-phone').value,
+                email: document.getElementById('input-email').value,
+                location: document.getElementById('input-location').value,
+                website: document.getElementById('input-website').value,
+                github: document.getElementById('input-github').value
+            };
+            resumeData.skills = document.getElementById('input-skills').value;
+            resumeData.awards = document.getElementById('input-awards').value;
+            resumeData.portfolio = document.getElementById('input-portfolio').value;
+            resumeData.objective = {
+                position: document.getElementById('input-position').value,
+                city: document.getElementById('input-city').value,
+                salary: document.getElementById('input-salary').value
+            };
+            resumeData.other = document.getElementById('input-other').value;
+            resumeData.intro = document.getElementById('input-intro').value;
+        }
+
+        // 设置事件监听
+        function setupListeners() {
+            // 基本信息监听
+            const basicInputs = ['input-name', 'input-job-title', 'input-phone', 'input-email', 'input-location', 'input-website', 'input-github'];
+            basicInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    collectData();
+                    updatePreview();
+                });
+            });
+
+            // 其他字段监听
+            const otherInputs = ['input-skills', 'input-awards', 'input-portfolio', 'input-position', 'input-city', 'input-salary', 'input-other', 'input-intro'];
+            otherInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    collectData();
+                    updatePreview();
+                });
+            });
+        }
+
+        // 更新预览
+        function updatePreview() {
+            const basic = resumeData.basic;
+
+            // 基本信息
+            document.getElementById('resume-name').textContent = basic.name;
+            document.getElementById('resume-job-title').textContent = basic.jobTitle;
+
+            // 联系方式 - 只显示非空的
+            const phoneEl = document.getElementById('contact-phone');
+            const emailEl = document.getElementById('contact-email');
+            const locationEl = document.getElementById('contact-location');
+            const websiteEl = document.getElementById('contact-website');
+            const githubEl = document.getElementById('contact-github');
+
+            phoneEl.classList.toggle('hidden', !basic.phone);
+            emailEl.classList.toggle('hidden', !basic.email);
+            locationEl.classList.toggle('hidden', !basic.location);
+            websiteEl.classList.toggle('hidden', !basic.website);
+            githubEl.classList.toggle('hidden', !basic.github);
+
+            document.getElementById('resume-phone').textContent = basic.phone;
+            document.getElementById('resume-email').textContent = basic.email;
+            document.getElementById('resume-location').textContent = basic.location;
+            document.getElementById('resume-website').textContent = basic.website;
+            document.getElementById('resume-github').textContent = basic.github ? `github.com/${basic.github}` : '';
+
+            // 技能
+            document.getElementById('resume-skills').textContent = resumeData.skills || '';
+
+            // 奖项
+            const awards = resumeData.awards.split('\n').filter(s => s.trim());
+            document.getElementById('resume-awards').innerHTML = awards.map(a => `<li>${a}</li>`).join('');
+
+            // 作品集
+            const portfolio = resumeData.portfolio.split('\n').filter(s => s.trim());
+            document.getElementById('resume-portfolio').innerHTML = portfolio.map(p => `<li>${p}</li>`).join('');
+
+            // 求职意向
+            document.getElementById('resume-position').textContent = resumeData.objective.position;
+            document.getElementById('resume-city').textContent = resumeData.objective.city;
+            document.getElementById('resume-salary').textContent = resumeData.objective.salary;
+
+            // 其他经历
+            const other = resumeData.other.split('\n').filter(s => s.trim());
+            document.getElementById('resume-other').innerHTML = other.map(o => `<li>${o}</li>`).join('');
+
+            // 个人简介
+            document.getElementById('resume-intro').textContent = resumeData.intro;
+
+            // 隐藏空内容的模块
+            hideEmptySections();
+
+            // 自动保存到localStorage
+            saveToLocalStorage();
+        }
+
+        // 隐藏空内容的模块
+        function hideEmptySections() {
+            // 教育经历
+            const hasEducation = resumeData.education.some(e => e.school && e.major);
+            document.getElementById('section-education').classList.toggle('hidden', !hasEducation);
+
+            // 专业技能
+            document.getElementById('section-skills').classList.toggle('hidden', !resumeData.skills.trim());
+
+            // 工作经历
+            const hasWork = resumeData.work.some(w => w.company && w.position);
+            document.getElementById('section-work').classList.toggle('hidden', !hasWork);
+
+            // 项目经历
+            const hasProject = resumeData.project.some(p => p.name && p.role);
+            document.getElementById('section-project').classList.toggle('hidden', !hasProject);
+
+            // 荣誉奖项
+            document.getElementById('section-awards').classList.toggle('hidden', !resumeData.awards.trim());
+
+            // 研究经历
+            const hasResearch = resumeData.research.some(r => r.title && r.role);
+            document.getElementById('section-research').classList.toggle('hidden', !hasResearch);
+
+            // 作品集
+            document.getElementById('section-portfolio').classList.toggle('hidden', !resumeData.portfolio.trim());
+
+            // 求职意向
+            const hasObjective = resumeData.objective.position || resumeData.objective.city || resumeData.objective.salary;
+            document.getElementById('section-objective').classList.toggle('hidden', !hasObjective);
+
+            // 其他经历
+            document.getElementById('section-other').classList.toggle('hidden', !resumeData.other.trim());
+
+            // 个人简介
+            document.getElementById('section-intro').classList.toggle('hidden', !resumeData.intro.trim());
+        }
+
+        // 头像上传
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarDataUrl = e.target.result;
+                    const img = document.getElementById('avatar-img');
+                    const placeholder = document.querySelector('.avatar-upload .placeholder');
+                    img.src = avatarDataUrl;
+                    img.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    // 自动保存
+                    saveToLocalStorage();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 教育经历
+        function addEducation() {
+            resumeData.education.push({ school: '', major: '', degree: '', time: '' });
+            renderEducation();
+        }
+
+        function removeEducation(index) {
+            resumeData.education.splice(index, 1);
+            renderEducation();
+        }
+
+        function updateEducation(index, field, value) {
+            resumeData.education[index][field] = value;
+            renderEducationPreview();
+        }
+
+        function renderEducation() {
+            const container = document.getElementById('education-list');
+            container.innerHTML = resumeData.education.map((item, index) => `
+                <div class="dynamic-item">
+                    <div class="form-group">
+                        <label>学校</label>
+                        <input type="text" value="${item.school}" onchange="updateEducation(${index}, 'school', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>专业</label>
+                        <input type="text" value="${item.major}" onchange="updateEducation(${index}, 'major', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>学位</label>
+                        <input type="text" value="${item.degree}" onchange="updateEducation(${index}, 'degree', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>时间</label>
+                        <input type="text" value="${item.time}" onchange="updateEducation(${index}, 'time', this.value)">
+                    </div>
+                    <button class="btn btn-danger" onclick="removeEducation(${index})">删除</button>
+                </div>
+            `).join('');
+            renderEducationPreview();
+        }
+
+        function renderEducationPreview() {
+            const container = document.getElementById('resume-education');
+            container.innerHTML = resumeData.education.map(item => `
+                <div class="education-item">
+                    <div class="item-header">
+                        <div class="education-main">
+                            <span class="item-title">${item.school}</span>
+                            <span>${item.major}</span>
+                            <span>${item.degree}</span>
+                        </div>
+                        <div class="item-date">${item.time}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 工作经历
+        function addWork() {
+            resumeData.work.push({ company: '', position: '', time: '', description: '' });
+            renderWork();
+        }
+
+        function removeWork(index) {
+            resumeData.work.splice(index, 1);
+            renderWork();
+        }
+
+        function updateWork(index, field, value) {
+            resumeData.work[index][field] = value;
+            renderWorkPreview();
+        }
+
+        function renderWork() {
+            const container = document.getElementById('work-list');
+            container.innerHTML = resumeData.work.map((item, index) => `
+                <div class="dynamic-item">
+                    <div class="form-group">
+                        <label>公司</label>
+                        <input type="text" value="${item.company}" onchange="updateWork(${index}, 'company', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>职位</label>
+                        <input type="text" value="${item.position}" onchange="updateWork(${index}, 'position', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>时间</label>
+                        <input type="text" value="${item.time}" onchange="updateWork(${index}, 'time', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea onchange="updateWork(${index}, 'description', this.value)">${item.description}</textarea>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeWork(${index})">删除</button>
+                </div>
+            `).join('');
+            renderWorkPreview();
+        }
+
+        function renderWorkPreview() {
+            const container = document.getElementById('resume-work');
+            container.innerHTML = resumeData.work.map(item => `
+                <div class="work-item">
+                    <div class="item-header">
+                        <div class="item-title">${item.company}</div>
+                        <div class="item-date">${item.time}</div>
+                    </div>
+                    <div class="item-subtitle">${item.position}</div>
+                    <div class="item-description">${item.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // 项目经历
+        function addProject() {
+            resumeData.project.push({ name: '', role: '', time: '', description: '' });
+            renderProject();
+        }
+
+        function removeProject(index) {
+            resumeData.project.splice(index, 1);
+            renderProject();
+        }
+
+        function updateProject(index, field, value) {
+            resumeData.project[index][field] = value;
+            renderProjectPreview();
+        }
+
+        function renderProject() {
+            const container = document.getElementById('project-list');
+            container.innerHTML = resumeData.project.map((item, index) => `
+                <div class="dynamic-item">
+                    <div class="form-group">
+                        <label>项目名称</label>
+                        <input type="text" value="${item.name}" onchange="updateProject(${index}, 'name', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>担任角色</label>
+                        <input type="text" value="${item.role}" onchange="updateProject(${index}, 'role', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>时间</label>
+                        <input type="text" value="${item.time}" onchange="updateProject(${index}, 'time', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>项目描述</label>
+                        <textarea onchange="updateProject(${index}, 'description', this.value)">${item.description}</textarea>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeProject(${index})">删除</button>
+                </div>
+            `).join('');
+            renderProjectPreview();
+        }
+
+        function renderProjectPreview() {
+            const container = document.getElementById('resume-project');
+            container.innerHTML = resumeData.project.map(item => `
+                <div class="project-item">
+                    <div class="item-header">
+                        <div class="item-title">${item.name}</div>
+                        <div class="item-date">${item.time}</div>
+                    </div>
+                    <div class="item-subtitle">${item.role}</div>
+                    <div class="item-description">${item.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // 研究经历
+        function addResearch() {
+            resumeData.research.push({ title: '', role: '', time: '', description: '' });
+            renderResearch();
+        }
+
+        function removeResearch(index) {
+            resumeData.research.splice(index, 1);
+            renderResearch();
+        }
+
+        function updateResearch(index, field, value) {
+            resumeData.research[index][field] = value;
+            renderResearchPreview();
+        }
+
+        function renderResearch() {
+            const container = document.getElementById('research-list');
+            container.innerHTML = resumeData.research.map((item, index) => `
+                <div class="dynamic-item">
+                    <div class="form-group">
+                        <label>研究课题</label>
+                        <input type="text" value="${item.title}" onchange="updateResearch(${index}, 'title', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>担任角色</label>
+                        <input type="text" value="${item.role}" onchange="updateResearch(${index}, 'role', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>时间</label>
+                        <input type="text" value="${item.time}" onchange="updateResearch(${index}, 'time', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>研究描述</label>
+                        <textarea onchange="updateResearch(${index}, 'description', this.value)">${item.description}</textarea>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeResearch(${index})">删除</button>
+                </div>
+            `).join('');
+            renderResearchPreview();
+        }
+
+        function renderResearchPreview() {
+            const container = document.getElementById('resume-research');
+            container.innerHTML = resumeData.research.map(item => `
+                <div class="research-item">
+                    <div class="item-header">
+                        <div class="item-title">${item.title}</div>
+                        <div class="item-date">${item.time}</div>
+                    </div>
+                    <div class="item-subtitle">${item.role}</div>
+                    <div class="item-description">${item.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // 导出JSON
+        function exportJSON() {
+            collectData();
+            const dataToExport = {
+                ...resumeData,
+                avatar: avatarDataUrl
+            };
+            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '简历数据.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 导入JSON
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        resumeData = {
+                            basic: importedData.basic || resumeData.basic,
+                            education: importedData.education || [],
+                            skills: importedData.skills || '',
+                            work: importedData.work || [],
+                            project: importedData.project || [],
+                            awards: importedData.awards || '',
+                            research: importedData.research || [],
+                            portfolio: importedData.portfolio || '',
+                            objective: importedData.objective || resumeData.objective,
+                            other: importedData.other || '',
+                            intro: importedData.intro || ''
+                        };
+
+                        if (importedData.avatar) {
+                            avatarDataUrl = importedData.avatar;
+                            const img = document.getElementById('avatar-img');
+                            const placeholder = document.querySelector('.avatar-upload .placeholder');
+                            img.src = avatarDataUrl;
+                            img.classList.remove('hidden');
+                            placeholder.classList.add('hidden');
+                        }
+
+                        loadDataToForm();
+                        renderEducation();
+                        renderWork();
+                        renderProject();
+                        renderResearch();
+                        updatePreview();
+                        alert('导入成功！');
+                    } catch (error) {
+                        alert('导入失败，请检查JSON文件格式！');
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+            // 重置input以便重复导入同一文件
+            event.target.value = '';
+        }
+
+        // 清除本地缓存
+        function clearCache() {
+            if (confirm('确定要清除所有本地缓存吗？这将删除所有已保存的简历数据，此操作不可撤销！')) {
+                localStorage.removeItem('resumeData');
+                alert('缓存已清除！页面将重新加载。');
+                location.reload();
+            }
+        }
+
+        // 导出PDF
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const resume = document.getElementById('resume');
+
+            const canvas = await html2canvas(resume, {
+                scale: 3,
+                useCORS: true,
+                logging: false
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const imgWidth = 210; // A4宽度
+            const pageHeight = 297; // A4高度
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // 添加容差，避免因为浮点数精度问题产生多余的空白页
+            const tolerance = 1; // 1mm容差
+
+            if (imgHeight <= pageHeight + tolerance) {
+                // 内容在一页内，直接输出
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            } else {
+                // 内容真正超过一页，需要分页
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                while (heightLeft > 0) {
+                    const heightOnPage = Math.min(heightLeft, pageHeight);
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, heightOnPage);
+                    heightLeft -= pageHeight;
+                    position -= pageHeight;
+
+                    if (heightLeft > 0) {
+                        pdf.addPage();
+                    }
+                }
+            }
+
+            pdf.save('简历.pdf');
+        }
+
+        // 导出图片
+        async function exportImage() {
+            const resume = document.getElementById('resume');
+
+            const canvas = await html2canvas(resume, {
+                scale: 3,
+                useCORS: true,
+                logging: false
+            });
+
+            const link = document.createElement('a');
+            link.download = '简历.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
