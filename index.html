@@ -4,275 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>简历生成器</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: #f0f0f0;
-            height: 100vh;
-            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
 
-        .container {
-            display: flex;
-            height: 100vh;
-        }
-
-        /* 左侧编辑区 */
-        .editor-panel {
-            width: 380px;
-            background: white;
-            border-right: 1px solid #ddd;
-            overflow-y: auto;
-            flex-shrink: 0;
-        }
-
-        .editor-panel::-webkit-scrollbar {
+        /* 自定义滚动条 */
+        .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
 
-        .editor-panel::-webkit-scrollbar-thumb {
-            background: #999;
-            border-radius: 3px;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
         }
 
-        .editor-header {
-            text-align: center;
-            padding: 15px;
-            background: #000;
-            color: white;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
         }
 
-        .editor-header h1 {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .module-toggle {
-            margin: 15px;
-            padding: 12px;
-            background: #f5f5f5;
-            border-radius: 6px;
-        }
-
-        .module-toggle h3 {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .module-order-item {
-            display: flex;
-            align-items: center;
-            padding: 6px 8px;
-            background: white;
-            margin-bottom: 6px;
-            border-radius: 4px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .module-order-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .module-order-item .drag-handle {
-            cursor: move;
-            margin-right: 8px;
-            color: #999;
-            font-size: 14px;
-        }
-
-        .module-order-item input[type="checkbox"] {
-            margin-right: 8px;
-            cursor: pointer;
-        }
-
-        .module-order-item label {
-            flex: 1;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .module-order-buttons {
-            display: flex;
-            gap: 2px;
-        }
-
-        .module-order-buttons button {
-            padding: 2px 6px;
-            font-size: 10px;
-            background: #e0e0e0;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        .module-order-buttons button:hover {
-            background: #d0d0d0;
-        }
-
-        .module-order-buttons button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .form-section {
-            margin: 0 15px 15px;
-            padding: 12px;
-            background: #f5f5f5;
-            border-radius: 6px;
-        }
-
-        .form-section h3 {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 11px;
-            font-weight: 500;
-            margin-bottom: 3px;
-            color: #666;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 6px 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-            font-family: inherit;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #000;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 50px;
-        }
-
-        .dynamic-list {
-            margin-top: 8px;
-        }
-
-        .dynamic-item {
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: #000;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #333;
-        }
-
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #d0d0d0;
-        }
-
-        .btn-success {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #45a049;
-        }
-
-        .btn-danger {
-            background: #ff4444;
-            color: white;
-            padding: 3px 8px;
-            font-size: 10px;
-        }
-
-        .btn-add {
-            width: 100%;
-            margin-top: 6px;
-        }
-
-        .export-buttons {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            padding: 12px;
-            border-top: 1px solid #ddd;
-            margin: 0 -15px -15px -15px;
-        }
-
-        .export-buttons .btn {
-            width: 100%;
-            margin-bottom: 6px;
-        }
-
-        .json-buttons {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-
-        .json-buttons .btn {
-            flex: 1;
-            margin-bottom: 0;
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* 右侧预览区 */
         .preview-panel {
             flex: 1;
-            padding: 30px;
+            padding: 40px;
             overflow-y: auto;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            background: #e0e0e0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .preview-panel::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
 
         .preview-panel::-webkit-scrollbar-thumb {
-            background: #999;
-            border-radius: 4px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .preview-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
 
         /* 简历样式 - 严格A4尺寸 */
@@ -283,9 +68,15 @@
             background: white;
             padding: 12mm 15mm;
             box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .resume:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
         }
 
         /* 头像在右上角 - 小尺寸长方形 */
@@ -547,168 +338,250 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
+<body class="bg-slate-50 h-screen overflow-hidden">
+    <div class="flex h-full">
         <!-- 左侧编辑区 -->
-        <div class="editor-panel">
-            <div class="editor-header">
-                <h1>简历生成器</h1>
-            </div>
-
-            <!-- JSON导入导出 -->
-            <div class="form-section">
-                <h3>💾 数据管理</h3>
-                <div class="json-buttons">
-                    <button class="btn btn-success" onclick="exportJSON()">导出JSON</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('json-import').click()">导入JSON</button>
-                    <input type="file" id="json-import" accept=".json" onchange="importJSON(event)">
-                </div>
-                <button class="btn btn-danger" style="width: 100%; margin-top: 8px;" onclick="clearCache()">🗑️ 清除本地缓存</button>
-            </div>
-
-            <!-- 模块开关 -->
-            <div class="module-toggle">
-                <h3>📋 模块选择与排序</h3>
-                <div id="module-order-list"></div>
-            </div>
-
-            <!-- 基本信息 -->
-            <div class="form-section">
-                <h3>👤 基本信息</h3>
-                <div class="form-group">
-                    <label>姓名</label>
-                    <input type="text" id="input-name" placeholder="请输入姓名" value="张三">
-                </div>
-                <div class="form-group">
-                    <label>求职头衔</label>
-                    <input type="text" id="input-job-title" placeholder="如：软件工程师" value="软件工程师">
-                </div>
-                <div class="form-group">
-                    <label>电话</label>
-                    <input type="text" id="input-phone" placeholder="手机号码" value="138-0000-0000">
-                </div>
-                <div class="form-group">
-                    <label>邮箱</label>
-                    <input type="text" id="input-email" placeholder="邮箱地址" value="zhangsan@email.com">
-                </div>
-                <div class="form-group">
-                    <label>地址</label>
-                    <input type="text" id="input-location" placeholder="所在城市" value="北京市">
-                </div>
-                <div class="form-group">
-                    <label>个人网站</label>
-                    <input type="text" id="input-website" placeholder="个人博客/网站" value="">
-                </div>
-                <div class="form-group">
-                    <label>GitHub</label>
-                    <input type="text" id="input-github" placeholder="GitHub用户名" value="zhangsan">
+        <div class="w-[400px] bg-white border-r border-slate-200 flex flex-col h-full">
+            <!-- 头部 -->
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">简历生成器</h1>
+                        <p class="text-xs text-slate-400 mt-0.5">Professional Resume Builder</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- 教育经历 -->
-            <div class="form-section">
-                <h3>🎓 教育经历</h3>
-                <div id="education-list"></div>
-                <button class="btn btn-secondary btn-add" onclick="addEducation()">+ 添加教育经历</button>
-            </div>
-
-            <!-- 专业技能 -->
-            <div class="form-section">
-                <h3>💼 专业技能</h3>
-                <div class="form-group">
-                    <label>技能描述</label>
-                    <textarea id="input-skills" placeholder="请自由描述您的专业技能和特长">熟练掌握 Java、Python、JavaScript 等编程语言；精通 React、Vue 前端框架；熟悉 Node.js 后端开发；具备 MySQL 数据库设计和优化能力；熟练使用 Git 版本控制工具；了解 Docker 容器化部署和 CI/CD 流程。</textarea>
+            <!-- 编辑内容区 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-5 pb-0">
+                <!-- 数据管理 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="database" class="w-4 h-4 text-indigo-600"></i>
+                        数据管理
+                    </h3>
+                    <div class="flex gap-2 mb-2">
+                        <button onclick="exportJSON()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            导出JSON
+                        </button>
+                        <button onclick="document.getElementById('json-import').click()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            导入JSON
+                        </button>
+                        <input type="file" id="json-import" accept=".json" onchange="importJSON(event)" class="hidden">
+                    </div>
+                    <button onclick="clearCache()" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        清除本地缓存
+                    </button>
                 </div>
-            </div>
 
-            <!-- 工作经历 -->
-            <div class="form-section">
-                <h3>💼 工作经历</h3>
-                <div id="work-list"></div>
-                <button class="btn btn-secondary btn-add" onclick="addWork()">+ 添加工作经历</button>
-            </div>
+                <!-- 模块选择 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="layout-list" class="w-4 h-4 text-indigo-600"></i>
+                        模块选择与排序
+                    </h3>
+                    <div id="module-order-list" class="space-y-2"></div>
+                </div>
 
-            <!-- 项目经历 -->
-            <div class="form-section">
-                <h3>🔧 项目经历</h3>
-                <div id="project-list"></div>
-                <button class="btn btn-secondary btn-add" onclick="addProject()">+ 添加项目经历</button>
-            </div>
+                <!-- 基本信息 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
+                        基本信息
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">姓名</label>
+                            <input type="text" id="input-name" value="张三" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="请输入姓名">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">求职头衔</label>
+                            <input type="text" id="input-job-title" value="软件工程师" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="如：软件工程师">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">电话</label>
+                            <input type="text" id="input-phone" value="138-0000-0000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="手机号码">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">邮箱</label>
+                            <input type="email" id="input-email" value="zhangsan@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="邮箱地址">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">地址</label>
+                            <input type="text" id="input-location" value="北京市" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="所在城市">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">个人网站</label>
+                            <input type="text" id="input-website" value="" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="个人博客/网站">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">GitHub</label>
+                            <input type="text" id="input-github" value="zhangsan" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="GitHub用户名">
+                        </div>
+                    </div>
+                </div>
 
-            <!-- 荣誉奖项 -->
-            <div class="form-section">
-                <h3>🏆 荣誉奖项</h3>
-                <div class="form-group">
-                    <label>奖项列表（每行一个）</label>
-                    <textarea id="input-awards" placeholder="每行一个奖项">2023年 国家奖学金
+                <!-- 教育经历 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
+                        教育经历
+                    </h3>
+                    <div id="education-list" class="space-y-3"></div>
+                    <button onclick="addEducation()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        添加教育经历
+                    </button>
+                </div>
+
+                <!-- 专业技能 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="wrench" class="w-4 h-4 text-indigo-600"></i>
+                        专业技能
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">技能描述</label>
+                        <textarea id="input-skills" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="请自由描述您的专业技能和特长">熟练掌握 Java、Python、JavaScript 等编程语言；精通 React、Vue 前端框架；熟悉 Node.js 后端开发；具备 MySQL 数据库设计和优化能力；熟练使用 Git 版本控制工具；了解 Docker 容器化部署和 CI/CD 流程。</textarea>
+                    </div>
+                </div>
+
+                <!-- 工作经历 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-indigo-600"></i>
+                        工作经历
+                    </h3>
+                    <div id="work-list" class="space-y-3"></div>
+                    <button onclick="addWork()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        添加工作经历
+                    </button>
+                </div>
+
+                <!-- 项目经历 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="code-2" class="w-4 h-4 text-indigo-600"></i>
+                        项目经历
+                    </h3>
+                    <div id="project-list" class="space-y-3"></div>
+                    <button onclick="addProject()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        添加项目经历
+                    </button>
+                </div>
+
+                <!-- 荣誉奖项 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="trophy" class="w-4 h-4 text-indigo-600"></i>
+                        荣誉奖项
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">奖项列表（每行一个）</label>
+                        <textarea id="input-awards" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="每行一个奖项">2023年 国家奖学金
 2022年 优秀学生干部
 2021年 学业一等奖学金</textarea>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 研究经历 -->
-            <div class="form-section">
-                <h3>🔬 研究经历</h3>
-                <div id="research-list"></div>
-                <button class="btn btn-secondary btn-add" onclick="addResearch()">+ 添加研究经历</button>
-            </div>
+                <!-- 研究经历 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="flask-conical" class="w-4 h-4 text-indigo-600"></i>
+                        研究经历
+                    </h3>
+                    <div id="research-list" class="space-y-3"></div>
+                    <button onclick="addResearch()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        添加研究经历
+                    </button>
+                </div>
 
-            <!-- 作品集 -->
-            <div class="form-section">
-                <h3>🎨 作品集</h3>
-                <div class="form-group">
-                    <label>作品列表（每行一个）</label>
-                    <textarea id="input-portfolio" placeholder="每行一个作品">GitHub: github.com/zhangsan
+                <!-- 作品集 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="folder-open" class="w-4 h-4 text-indigo-600"></i>
+                        作品集
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">作品列表（每行一个）</label>
+                        <textarea id="input-portfolio" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="每行一个作品">GitHub: github.com/zhangsan
 个人博客: zhangsan.blog</textarea>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 求职意向 -->
-            <div class="form-section">
-                <h3>🎯 求职意向</h3>
-                <div class="form-group">
-                    <label>期望职位</label>
-                    <input type="text" id="input-position" placeholder="期望职位" value="软件工程师">
+                <!-- 求职意向 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="crosshair" class="w-4 h-4 text-indigo-600"></i>
+                        求职意向
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">期望职位</label>
+                            <input type="text" id="input-position" value="软件工程师" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="期望职位">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">期望城市</label>
+                            <input type="text" id="input-city" value="北京/上海/深圳" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="期望城市">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">期望薪资</label>
+                            <input type="text" id="input-salary" value="面议" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="期望薪资">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>期望城市</label>
-                    <input type="text" id="input-city" placeholder="期望城市" value="北京/上海/深圳">
-                </div>
-                <div class="form-group">
-                    <label>期望薪资</label>
-                    <input type="text" id="input-salary" placeholder="期望薪资" value="面议">
-                </div>
-            </div>
 
-            <!-- 其他经历 -->
-            <div class="form-section">
-                <h3>📝 其他经历</h3>
-                <div class="form-group">
-                    <label>经历列表（每行一个）</label>
-                    <textarea id="input-other" placeholder="每行一个经历">2020-2022 校学生会主席
+                <!-- 其他经历 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="scroll-text" class="w-4 h-4 text-indigo-600"></i>
+                        其他经历
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">经历列表（每行一个）</label>
+                        <textarea id="input-other" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="每行一个经历">2020-2022 校学生会主席
 2019-2021 校志愿者服务队</textarea>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 个人简介 -->
-            <div class="form-section">
-                <h3>✨ 个人简介</h3>
-                <div class="form-group">
-                    <label>简介内容</label>
-                    <textarea id="input-intro">热爱编程，具有扎实的计算机基础知识。在校期间多次参与项目开发，具备良好的团队协作能力和问题解决能力。对新技术充满热情，持续学习提升自己。</textarea>
+                <!-- 个人简介 -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="user-circle" class="w-4 h-4 text-indigo-600"></i>
+                        个人简介
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">简介内容</label>
+                        <textarea id="input-intro" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">热爱编程，具有扎实的计算机基础知识。在校期间多次参与项目开发，具备良好的团队协作能力和问题解决能力。对新技术充满热情，持续学习提升自己。</textarea>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 导出按钮 -->
-            <div class="export-buttons">
-                <button class="btn btn-primary" onclick="exportPDF()">📄 导出 PDF</button>
-                <button class="btn btn-secondary" onclick="exportImage()">🖼️ 导出图片</button>
+                <!-- 导出按钮 -->
+                <div class="sticky bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 space-y-2 shadow-lg z-10">
+                    <button onclick="exportPDF()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl text-sm font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                        <i data-lucide="file-down" class="w-4 h-4"></i>
+                        导出 PDF
+                    </button>
+                    <button onclick="exportImage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2">
+                        <i data-lucide="image" class="w-4 h-4"></i>
+                        导出图片
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- 右侧预览区 -->
-        <div class="preview-panel">
-            <div class="resume" id="resume">
+        <div class="flex-1 bg-slate-100 overflow-y-auto custom-scrollbar p-8">
+            <div class="resume bg-white shadow-2xl mx-auto" id="resume" style="width: 210mm; min-height: 297mm; max-height: 297mm; padding: 12mm 15mm;">
                 <!-- 头像 - 右上角 -->
                 <div class="avatar-container" id="resume-avatar">
                     <div class="avatar-upload" onclick="document.getElementById('avatar-input').click()">
@@ -848,6 +721,8 @@
     </div>
 
     <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
         // 数据存储
         let resumeData = {
             basic: {
@@ -911,30 +786,33 @@
 
             // 渲染固定模块（无上下移动按钮）
             const fixedHtml = Object.values(fixedModules).map(module => `
-                <div class="module-order-item" style="background: #e8e8e8;">
-                    <span class="drag-handle" style="opacity: 0.3;">☰</span>
-                    <input type="checkbox" id="${module.id}" ${module.visible ? 'checked' : ''} onchange="toggleFixedModule('${module.id}')">
-                    <label for="${module.id}">${module.name}</label>
-                    <div class="module-order-buttons">
-                        <button disabled style="opacity: 0.3;">固定</button>
-                    </div>
+                <div class="flex items-center gap-2 p-2 bg-slate-200 rounded-lg">
+                    <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
+                    <input type="checkbox" id="${module.id}" ${module.visible ? 'checked' : ''} onchange="toggleFixedModule('${module.id}')" class="w-4 h-4 text-indigo-600 rounded">
+                    <label for="${module.id}" class="flex-1 text-xs font-medium text-slate-700 cursor-pointer">${module.name}</label>
+                    <button disabled class="px-2 py-1 bg-slate-300 text-slate-500 rounded text-xs">固定</button>
                 </div>
             `).join('');
 
             // 渲染可调整顺序的模块
             const reorderableHtml = moduleOrder.map((module, index) => `
-                <div class="module-order-item">
-                    <span class="drag-handle">☰</span>
-                    <input type="checkbox" id="${module.toggle}" ${module.visible ? 'checked' : ''} onchange="toggleModuleVisibility(${index})">
-                    <label for="${module.toggle}">${module.name}</label>
-                    <div class="module-order-buttons">
-                        <button onclick="moveModuleUp(${index})" ${index === 0 ? 'disabled' : ''}>↑</button>
-                        <button onclick="moveModuleDown(${index})" ${index === moduleOrder.length - 1 ? 'disabled' : ''}>↓</button>
+                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 hover:border-indigo-300 transition">
+                    <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
+                    <input type="checkbox" id="${module.toggle}" ${module.visible ? 'checked' : ''} onchange="toggleModuleVisibility(${index})" class="w-4 h-4 text-indigo-600 rounded">
+                    <label for="${module.toggle}" class="flex-1 text-xs font-medium text-slate-700 cursor-pointer">${module.name}</label>
+                    <div class="flex gap-1">
+                        <button onclick="moveModuleUp(${index})" ${index === 0 ? 'disabled' : ''} class="p-1 hover:bg-slate-100 rounded transition ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}">
+                            <i data-lucide="chevron-up" class="w-4 h-4 text-slate-600"></i>
+                        </button>
+                        <button onclick="moveModuleDown(${index})" ${index === moduleOrder.length - 1 ? 'disabled' : ''} class="p-1 hover:bg-slate-100 rounded transition ${index === moduleOrder.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}">
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
 
             container.innerHTML = fixedHtml + reorderableHtml;
+            lucide.createIcons();
         }
 
         // 切换固定模块的可见性
@@ -1091,6 +969,8 @@
             reorderSections();
 
             setupListeners();
+            // 初始化图标
+            lucide.createIcons();
         }
 
         // 应用模块可见性
@@ -1308,27 +1188,31 @@
         function renderEducation() {
             const container = document.getElementById('education-list');
             container.innerHTML = resumeData.education.map((item, index) => `
-                <div class="dynamic-item">
-                    <div class="form-group">
-                        <label>学校</label>
-                        <input type="text" value="${item.school}" onchange="updateEducation(${index}, 'school', this.value)">
+                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">学校</label>
+                        <input type="text" value="${item.school}" onchange="updateEducation(${index}, 'school', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>专业</label>
-                        <input type="text" value="${item.major}" onchange="updateEducation(${index}, 'major', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">专业</label>
+                        <input type="text" value="${item.major}" onchange="updateEducation(${index}, 'major', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>学位</label>
-                        <input type="text" value="${item.degree}" onchange="updateEducation(${index}, 'degree', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">学位</label>
+                        <input type="text" value="${item.degree}" onchange="updateEducation(${index}, 'degree', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>时间</label>
-                        <input type="text" value="${item.time}" onchange="updateEducation(${index}, 'time', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateEducation(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <button class="btn btn-danger" onclick="removeEducation(${index})">删除</button>
+                    <button onclick="removeEducation(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        删除
+                    </button>
                 </div>
             `).join('');
             renderEducationPreview();
+            lucide.createIcons();
         }
 
         function renderEducationPreview() {
@@ -1366,27 +1250,31 @@
         function renderWork() {
             const container = document.getElementById('work-list');
             container.innerHTML = resumeData.work.map((item, index) => `
-                <div class="dynamic-item">
-                    <div class="form-group">
-                        <label>公司</label>
-                        <input type="text" value="${item.company}" onchange="updateWork(${index}, 'company', this.value)">
+                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">公司</label>
+                        <input type="text" value="${item.company}" onchange="updateWork(${index}, 'company', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>职位</label>
-                        <input type="text" value="${item.position}" onchange="updateWork(${index}, 'position', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">职位</label>
+                        <input type="text" value="${item.position}" onchange="updateWork(${index}, 'position', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>时间</label>
-                        <input type="text" value="${item.time}" onchange="updateWork(${index}, 'time', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateWork(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>描述</label>
-                        <textarea onchange="updateWork(${index}, 'description', this.value)">${item.description}</textarea>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">描述</label>
+                        <textarea rows="3" onchange="updateWork(${index}, 'description', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">${item.description}</textarea>
                     </div>
-                    <button class="btn btn-danger" onclick="removeWork(${index})">删除</button>
+                    <button onclick="removeWork(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        删除
+                    </button>
                 </div>
             `).join('');
             renderWorkPreview();
+            lucide.createIcons();
         }
 
         function renderWorkPreview() {
@@ -1422,27 +1310,31 @@
         function renderProject() {
             const container = document.getElementById('project-list');
             container.innerHTML = resumeData.project.map((item, index) => `
-                <div class="dynamic-item">
-                    <div class="form-group">
-                        <label>项目名称</label>
-                        <input type="text" value="${item.name}" onchange="updateProject(${index}, 'name', this.value)">
+                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">项目名称</label>
+                        <input type="text" value="${item.name}" onchange="updateProject(${index}, 'name', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>担任角色</label>
-                        <input type="text" value="${item.role}" onchange="updateProject(${index}, 'role', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">担任角色</label>
+                        <input type="text" value="${item.role}" onchange="updateProject(${index}, 'role', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>时间</label>
-                        <input type="text" value="${item.time}" onchange="updateProject(${index}, 'time', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateProject(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>项目描述</label>
-                        <textarea onchange="updateProject(${index}, 'description', this.value)">${item.description}</textarea>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">项目描述</label>
+                        <textarea rows="3" onchange="updateProject(${index}, 'description', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">${item.description}</textarea>
                     </div>
-                    <button class="btn btn-danger" onclick="removeProject(${index})">删除</button>
+                    <button onclick="removeProject(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        删除
+                    </button>
                 </div>
             `).join('');
             renderProjectPreview();
+            lucide.createIcons();
         }
 
         function renderProjectPreview() {
@@ -1478,27 +1370,31 @@
         function renderResearch() {
             const container = document.getElementById('research-list');
             container.innerHTML = resumeData.research.map((item, index) => `
-                <div class="dynamic-item">
-                    <div class="form-group">
-                        <label>研究课题</label>
-                        <input type="text" value="${item.title}" onchange="updateResearch(${index}, 'title', this.value)">
+                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">研究课题</label>
+                        <input type="text" value="${item.title}" onchange="updateResearch(${index}, 'title', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>担任角色</label>
-                        <input type="text" value="${item.role}" onchange="updateResearch(${index}, 'role', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">担任角色</label>
+                        <input type="text" value="${item.role}" onchange="updateResearch(${index}, 'role', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>时间</label>
-                        <input type="text" value="${item.time}" onchange="updateResearch(${index}, 'time', this.value)">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateResearch(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
-                    <div class="form-group">
-                        <label>研究描述</label>
-                        <textarea onchange="updateResearch(${index}, 'description', this.value)">${item.description}</textarea>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">研究描述</label>
+                        <textarea rows="3" onchange="updateResearch(${index}, 'description', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">${item.description}</textarea>
                     </div>
-                    <button class="btn btn-danger" onclick="removeResearch(${index})">删除</button>
+                    <button onclick="removeResearch(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        删除
+                    </button>
                 </div>
             `).join('');
             renderResearchPreview();
+            lucide.createIcons();
         }
 
         function renderResearchPreview() {
