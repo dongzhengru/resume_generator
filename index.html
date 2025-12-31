@@ -79,6 +79,12 @@
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
         }
 
+        /* 导出时的临时样式 */
+        .resume.exporting {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
         /* 头像在右上角 - 小尺寸长方形 */
         .avatar-container {
             position: absolute;
@@ -227,6 +233,8 @@
             font-size: 11px;
             color: #666;
             line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         /* 教育经历一行显示 */
@@ -306,29 +314,73 @@
         }
 
         @media print {
+            html,
             body {
-                background: white;
-            }
-
-            .container {
-                height: auto;
-            }
-
-            .editor-panel {
-                display: none;
-            }
-
-            .preview-panel {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
                 padding: 0;
                 overflow: visible;
             }
 
-            .resume {
-                box-shadow: none;
+            body * {
+                visibility: hidden;
+            }
+
+            .container,
+            .editor-panel {
+                display: none !important;
+            }
+
+            #resume,
+            #resume * {
+                visibility: visible;
+            }
+
+            #resume {
+                position: fixed;
+                left: 0;
+                top: 0;
+                box-shadow: none !important;
+                transform: none !important;
+                margin: 0 !important;
+                width: 210mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                padding: 12mm 15mm !important;
+            }
+
+            .preview-panel {
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                background: white !important;
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 210mm;
+                height: 297mm;
             }
 
             .avatar-upload input[type="file"] {
                 display: none;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 0mm;
+            }
+
+            @page :left {
+                margin: 0mm;
+            }
+
+            @page :right {
+                margin: 0mm;
+            }
+
+            @page :first {
+                margin: 0mm;
             }
         }
 
@@ -341,239 +393,240 @@
 <body class="bg-slate-50 h-screen overflow-hidden">
     <div class="flex h-full">
         <!-- 左侧编辑区 -->
-        <div class="w-[400px] bg-white border-r border-slate-200 flex flex-col h-full">
+        <div class="w-[400px] bg-gray-50/80 border-r border-gray-200 flex flex-col h-full backdrop-blur-xl">
             <!-- 头部 -->
-            <div class="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-5 shadow-lg">
+            <div class="bg-white/80 backdrop-blur-xl px-6 py-6 border-b border-gray-200/50 sticky top-0 z-20">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                        <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                    <div class="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-white">简历生成器</h1>
-                        <p class="text-xs text-slate-400 mt-0.5">Professional Resume Builder</p>
+                        <h1 class="text-lg font-semibold text-gray-900 tracking-tight">简历生成器</h1>
+                        <p class="text-xs text-gray-500 mt-0.5 font-medium">Professional Resume Builder</p>
                     </div>
                 </div>
             </div>
 
             <!-- 编辑内容区 -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-5 pb-0">
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 pb-0 space-y-6">
                 <!-- 数据管理 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="database" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="database" class="w-4 h-4 text-blue-500"></i>
                         数据管理
                     </h3>
-                    <div class="flex gap-2 mb-2">
-                        <button onclick="exportJSON()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <div class="flex gap-2.5 mb-2.5">
+                        <button onclick="exportJSON()" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm flex items-center justify-center gap-2">
                             <i data-lucide="download" class="w-4 h-4"></i>
                             导出JSON
                         </button>
-                        <button onclick="document.getElementById('json-import').click()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <button onclick="document.getElementById('json-import').click()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2">
                             <i data-lucide="upload" class="w-4 h-4"></i>
                             导入JSON
                         </button>
                         <input type="file" id="json-import" accept=".json" onchange="importJSON(event)" class="hidden">
                     </div>
-                    <button onclick="clearCache()" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="clearCache()" class="w-full bg-white hover:bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border border-red-200 hover:border-red-300 flex items-center justify-center gap-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         清除本地缓存
                     </button>
                 </div>
 
                 <!-- 模块选择 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="layout-list" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="layout-list" class="w-4 h-4 text-blue-500"></i>
                         模块选择与排序
                     </h3>
                     <div id="module-order-list" class="space-y-2"></div>
                 </div>
 
                 <!-- 基本信息 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4 text-blue-500"></i>
                         基本信息
                     </h3>
-                    <div class="space-y-3">
+                    <div class="space-y-3.5">
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">姓名</label>
-                            <input type="text" id="input-name" value="张三" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="请输入姓名">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">姓名</label>
+                            <input type="text" id="input-name" value="张三" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="请输入姓名">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">求职头衔</label>
-                            <input type="text" id="input-job-title" value="软件工程师" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="如：软件工程师">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">求职头衔</label>
+                            <input type="text" id="input-job-title" value="软件工程师" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="如：软件工程师">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">电话</label>
-                            <input type="text" id="input-phone" value="138-0000-0000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="手机号码">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">电话</label>
+                            <input type="text" id="input-phone" value="138-0000-0000" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="手机号码">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">邮箱</label>
-                            <input type="email" id="input-email" value="zhangsan@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="邮箱地址">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">邮箱</label>
+                            <input type="email" id="input-email" value="zhangsan@email.com" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="邮箱地址">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">地址</label>
-                            <input type="text" id="input-location" value="北京市" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="所在城市">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">地址</label>
+                            <input type="text" id="input-location" value="北京市" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="所在城市">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">个人网站</label>
-                            <input type="text" id="input-website" value="" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="个人博客/网站">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">个人网站</label>
+                            <input type="text" id="input-website" value="" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="个人博客/网站">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">GitHub</label>
-                            <input type="text" id="input-github" value="zhangsan" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="GitHub用户名">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">GitHub</label>
+                            <input type="text" id="input-github" value="zhangsan" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="GitHub用户名">
                         </div>
                     </div>
                 </div>
 
                 <!-- 教育经历 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="graduation-cap" class="w-4 h-4 text-blue-500"></i>
                         教育经历
                     </h3>
                     <div id="education-list" class="space-y-3"></div>
-                    <button onclick="addEducation()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="addEducation()" class="w-full mt-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         添加教育经历
                     </button>
                 </div>
 
                 <!-- 专业技能 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="wrench" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="wrench" class="w-4 h-4 text-blue-500"></i>
                         专业技能
                     </h3>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">技能描述</label>
-                        <textarea id="input-skills" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="请自由描述您的专业技能和特长">熟练掌握 Java、Python、JavaScript 等编程语言；精通 React、Vue 前端框架；熟悉 Node.js 后端开发；具备 MySQL 数据库设计和优化能力；熟练使用 Git 版本控制工具；了解 Docker 容器化部署和 CI/CD 流程。</textarea>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">技能列表（每行一个）</label>
+                        <textarea id="input-skills" rows="6" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y placeholder:text-gray-400" placeholder="每行一个技能">Java、Python、JavaScript 编程语言
+React、Vue 前端框架
+Node.js 后端开发
+MySQL 数据库设计与优化
+Git 版本控制
+Docker 容器化部署</textarea>
                     </div>
                 </div>
 
                 <!-- 工作经历 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="briefcase" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-blue-500"></i>
                         工作经历
                     </h3>
                     <div id="work-list" class="space-y-3"></div>
-                    <button onclick="addWork()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="addWork()" class="w-full mt-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         添加工作经历
                     </button>
                 </div>
 
                 <!-- 项目经历 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="code-2" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="code-2" class="w-4 h-4 text-blue-500"></i>
                         项目经历
                     </h3>
                     <div id="project-list" class="space-y-3"></div>
-                    <button onclick="addProject()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="addProject()" class="w-full mt-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         添加项目经历
                     </button>
                 </div>
 
                 <!-- 荣誉奖项 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="trophy" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="trophy" class="w-4 h-4 text-blue-500"></i>
                         荣誉奖项
                     </h3>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">奖项列表（每行一个）</label>
-                        <textarea id="input-awards" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="每行一个奖项">2023年 国家奖学金
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">奖项列表（每行一个）</label>
+                        <textarea id="input-awards" rows="6" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y placeholder:text-gray-400" placeholder="每行一个奖项">2023年 国家奖学金
 2022年 优秀学生干部
 2021年 学业一等奖学金</textarea>
                     </div>
                 </div>
 
                 <!-- 研究经历 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="flask-conical" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="flask-conical" class="w-4 h-4 text-blue-500"></i>
                         研究经历
                     </h3>
                     <div id="research-list" class="space-y-3"></div>
-                    <button onclick="addResearch()" class="w-full mt-3 border-2 border-dashed border-slate-300 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="addResearch()" class="w-full mt-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         添加研究经历
                     </button>
                 </div>
 
                 <!-- 作品集 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="folder-open" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="folder-open" class="w-4 h-4 text-blue-500"></i>
                         作品集
                     </h3>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">作品列表（每行一个）</label>
-                        <textarea id="input-portfolio" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="每行一个作品">GitHub: github.com/zhangsan
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">作品列表（每行一个）</label>
+                        <textarea id="input-portfolio" rows="6" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y placeholder:text-gray-400" placeholder="每行一个作品">GitHub: github.com/zhangsan
 个人博客: zhangsan.blog</textarea>
                     </div>
                 </div>
 
                 <!-- 求职意向 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="crosshair" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="crosshair" class="w-4 h-4 text-blue-500"></i>
                         求职意向
                     </h3>
-                    <div class="space-y-3">
+                    <div class="space-y-3.5">
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">期望职位</label>
-                            <input type="text" id="input-position" value="软件工程师" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="期望职位">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">期望职位</label>
+                            <input type="text" id="input-position" value="软件工程师" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="期望职位">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">期望城市</label>
-                            <input type="text" id="input-city" value="北京/上海/深圳" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="期望城市">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">期望城市</label>
+                            <input type="text" id="input-city" value="北京/上海/深圳" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="期望城市">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">期望薪资</label>
-                            <input type="text" id="input-salary" value="面议" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="期望薪资">
+                            <label class="block text-xs font-medium text-gray-700 mb-1.5">期望薪资</label>
+                            <input type="text" id="input-salary" value="面议" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400" placeholder="期望薪资">
                         </div>
                     </div>
                 </div>
 
                 <!-- 其他经历 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="scroll-text" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="scroll-text" class="w-4 h-4 text-blue-500"></i>
                         其他经历
                     </h3>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">经历列表（每行一个）</label>
-                        <textarea id="input-other" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none" placeholder="每行一个经历">2020-2022 校学生会主席
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">经历列表（每行一个）</label>
+                        <textarea id="input-other" rows="6" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y placeholder:text-gray-400" placeholder="每行一个经历">2020-2022 校学生会主席
 2019-2021 校志愿者服务队</textarea>
                     </div>
                 </div>
 
                 <!-- 个人简介 -->
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="user-circle" class="w-4 h-4 text-indigo-600"></i>
+                <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="user-circle" class="w-4 h-4 text-blue-500"></i>
                         个人简介
                     </h3>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">简介内容</label>
-                        <textarea id="input-intro" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">热爱编程，具有扎实的计算机基础知识。在校期间多次参与项目开发，具备良好的团队协作能力和问题解决能力。对新技术充满热情，持续学习提升自己。</textarea>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">简介内容</label>
+                        <textarea id="input-intro" rows="8" class="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y placeholder:text-gray-400">热爱编程，具有扎实的计算机基础知识。在校期间多次参与项目开发，具备良好的团队协作能力和问题解决能力。对新技术充满热情，持续学习提升自己。</textarea>
                     </div>
                 </div>
 
                 <!-- 导出按钮 -->
-                <div class="sticky bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 space-y-2 shadow-lg z-10">
-                    <button onclick="exportPDF()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-xl text-sm font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                        <i data-lucide="file-down" class="w-4 h-4"></i>
-                        导出 PDF
-                    </button>
-                    <button onclick="exportImage()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2">
-                        <i data-lucide="image" class="w-4 h-4"></i>
-                        导出图片
+                <div class="sticky bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-200/60 p-5 space-y-2.5 shadow-lg z-10 rounded-t-3xl">
+                    <button onclick="printResume()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 flex items-center justify-center gap-2">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        打印/导出 PDF
                     </button>
                 </div>
             </div>
@@ -634,7 +687,7 @@
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/></svg>
                         专业技能
                     </div>
-                    <div class="item-description" id="resume-skills"></div>
+                    <ul class="awards-list" id="resume-skills"></ul>
                 </div>
 
                 <!-- 工作经历 -->
@@ -737,7 +790,7 @@
             education: [
                 { school: '清华大学', major: '计算机科学与技术', degree: '学士', time: '2019.09 - 2023.06' }
             ],
-            skills: 'Java, Python, JavaScript, React, Vue, Node.js, MySQL, Git',
+            skills: 'Java、Python、JavaScript 编程语言\nReact、Vue 前端框架\nNode.js 后端开发\nMySQL 数据库设计与优化\nGit 版本控制\nDocker 容器化部署',
             work: [
                 { company: '某某科技公司', position: '前端开发工程师', time: '2023.07 - 至今', description: '负责公司核心产品的前端开发工作，使用React技术栈。' }
             ],
@@ -786,26 +839,26 @@
 
             // 渲染固定模块（无上下移动按钮）
             const fixedHtml = Object.values(fixedModules).map(module => `
-                <div class="flex items-center gap-2 p-2 bg-slate-200 rounded-lg">
-                    <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
-                    <input type="checkbox" id="${module.id}" ${module.visible ? 'checked' : ''} onchange="toggleFixedModule('${module.id}')" class="w-4 h-4 text-indigo-600 rounded">
-                    <label for="${module.id}" class="flex-1 text-xs font-medium text-slate-700 cursor-pointer">${module.name}</label>
-                    <button disabled class="px-2 py-1 bg-slate-300 text-slate-500 rounded text-xs">固定</button>
+                <div class="flex items-center gap-2.5 p-2.5 bg-gray-100/80 rounded-xl">
+                    <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-400 cursor-move"></i>
+                    <input type="checkbox" id="${module.id}" ${module.visible ? 'checked' : ''} onchange="toggleFixedModule('${module.id}')" class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500/20">
+                    <label for="${module.id}" class="flex-1 text-xs font-medium text-gray-700 cursor-pointer">${module.name}</label>
+                    <button disabled class="px-2 py-1 bg-gray-200 text-gray-500 rounded-lg text-xs font-medium">固定</button>
                 </div>
             `).join('');
 
             // 渲染可调整顺序的模块
             const reorderableHtml = moduleOrder.map((module, index) => `
-                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 hover:border-indigo-300 transition">
-                    <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
-                    <input type="checkbox" id="${module.toggle}" ${module.visible ? 'checked' : ''} onchange="toggleModuleVisibility(${index})" class="w-4 h-4 text-indigo-600 rounded">
-                    <label for="${module.toggle}" class="flex-1 text-xs font-medium text-slate-700 cursor-pointer">${module.name}</label>
-                    <div class="flex gap-1">
-                        <button onclick="moveModuleUp(${index})" ${index === 0 ? 'disabled' : ''} class="p-1 hover:bg-slate-100 rounded transition ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}">
-                            <i data-lucide="chevron-up" class="w-4 h-4 text-slate-600"></i>
+                <div class="flex items-center gap-2.5 p-2.5 bg-white rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-200 shadow-sm">
+                    <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-400 cursor-move"></i>
+                    <input type="checkbox" id="${module.toggle}" ${module.visible ? 'checked' : ''} onchange="toggleModuleVisibility(${index})" class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500/20">
+                    <label for="${module.toggle}" class="flex-1 text-xs font-medium text-gray-700 cursor-pointer">${module.name}</label>
+                    <div class="flex gap-0.5">
+                        <button onclick="moveModuleUp(${index})" ${index === 0 ? 'disabled' : ''} class="p-1.5 hover:bg-gray-100 rounded-lg transition-all duration-200 ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}">
+                            <i data-lucide="chevron-up" class="w-4 h-4 text-gray-600"></i>
                         </button>
-                        <button onclick="moveModuleDown(${index})" ${index === moduleOrder.length - 1 ? 'disabled' : ''} class="p-1 hover:bg-slate-100 rounded transition ${index === moduleOrder.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}">
-                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600"></i>
+                        <button onclick="moveModuleDown(${index})" ${index === moduleOrder.length - 1 ? 'disabled' : ''} class="p-1.5 hover:bg-gray-100 rounded-lg transition-all duration-200 ${index === moduleOrder.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}">
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-gray-600"></i>
                         </button>
                     </div>
                 </div>
@@ -1083,7 +1136,8 @@
             document.getElementById('resume-github').textContent = basic.github ? `github.com/${basic.github}` : '';
 
             // 技能
-            document.getElementById('resume-skills').textContent = resumeData.skills || '';
+            const skills = resumeData.skills.split('\n').filter(s => s.trim());
+            document.getElementById('resume-skills').innerHTML = skills.map(s => `<li>${s}</li>`).join('');
 
             // 奖项
             const awards = resumeData.awards.split('\n').filter(s => s.trim());
@@ -1188,24 +1242,24 @@
         function renderEducation() {
             const container = document.getElementById('education-list');
             container.innerHTML = resumeData.education.map((item, index) => `
-                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-200/60 space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">学校</label>
-                        <input type="text" value="${item.school}" onchange="updateEducation(${index}, 'school', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">学校</label>
+                        <input type="text" value="${item.school}" onchange="updateEducation(${index}, 'school', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">专业</label>
-                        <input type="text" value="${item.major}" onchange="updateEducation(${index}, 'major', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">专业</label>
+                        <input type="text" value="${item.major}" onchange="updateEducation(${index}, 'major', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">学位</label>
-                        <input type="text" value="${item.degree}" onchange="updateEducation(${index}, 'degree', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">学位</label>
+                        <input type="text" value="${item.degree}" onchange="updateEducation(${index}, 'degree', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
-                        <input type="text" value="${item.time}" onchange="updateEducation(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateEducation(${index}, 'time', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
-                    <button onclick="removeEducation(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="removeEducation(${index})" class="w-full bg-white hover:bg-red-50 text-red-600 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border border-red-200 hover:border-red-300 flex items-center justify-center gap-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         删除
                     </button>
@@ -1250,24 +1304,24 @@
         function renderWork() {
             const container = document.getElementById('work-list');
             container.innerHTML = resumeData.work.map((item, index) => `
-                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-200/60 space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">公司</label>
-                        <input type="text" value="${item.company}" onchange="updateWork(${index}, 'company', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">公司</label>
+                        <input type="text" value="${item.company}" onchange="updateWork(${index}, 'company', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">职位</label>
-                        <input type="text" value="${item.position}" onchange="updateWork(${index}, 'position', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">职位</label>
+                        <input type="text" value="${item.position}" onchange="updateWork(${index}, 'position', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
-                        <input type="text" value="${item.time}" onchange="updateWork(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateWork(${index}, 'time', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">描述</label>
-                        <textarea rows="3" onchange="updateWork(${index}, 'description', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">${item.description}</textarea>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">描述</label>
+                        <textarea rows="5" onchange="updateWork(${index}, 'description', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y">${item.description}</textarea>
                     </div>
-                    <button onclick="removeWork(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="removeWork(${index})" class="w-full bg-white hover:bg-red-50 text-red-600 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border border-red-200 hover:border-red-300 flex items-center justify-center gap-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         删除
                     </button>
@@ -1310,24 +1364,24 @@
         function renderProject() {
             const container = document.getElementById('project-list');
             container.innerHTML = resumeData.project.map((item, index) => `
-                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-200/60 space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">项目名称</label>
-                        <input type="text" value="${item.name}" onchange="updateProject(${index}, 'name', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">项目名称</label>
+                        <input type="text" value="${item.name}" onchange="updateProject(${index}, 'name', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">担任角色</label>
-                        <input type="text" value="${item.role}" onchange="updateProject(${index}, 'role', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">担任角色</label>
+                        <input type="text" value="${item.role}" onchange="updateProject(${index}, 'role', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
-                        <input type="text" value="${item.time}" onchange="updateProject(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateProject(${index}, 'time', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">项目描述</label>
-                        <textarea rows="3" onchange="updateProject(${index}, 'description', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">${item.description}</textarea>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">项目描述</label>
+                        <textarea rows="5" onchange="updateProject(${index}, 'description', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y">${item.description}</textarea>
                     </div>
-                    <button onclick="removeProject(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="removeProject(${index})" class="w-full bg-white hover:bg-red-50 text-red-600 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border border-red-200 hover:border-red-300 flex items-center justify-center gap-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         删除
                     </button>
@@ -1370,24 +1424,24 @@
         function renderResearch() {
             const container = document.getElementById('research-list');
             container.innerHTML = resumeData.research.map((item, index) => `
-                <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-200/60 space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">研究课题</label>
-                        <input type="text" value="${item.title}" onchange="updateResearch(${index}, 'title', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">研究课题</label>
+                        <input type="text" value="${item.title}" onchange="updateResearch(${index}, 'title', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">担任角色</label>
-                        <input type="text" value="${item.role}" onchange="updateResearch(${index}, 'role', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">担任角色</label>
+                        <input type="text" value="${item.role}" onchange="updateResearch(${index}, 'role', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">时间</label>
-                        <input type="text" value="${item.time}" onchange="updateResearch(${index}, 'time', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">时间</label>
+                        <input type="text" value="${item.time}" onchange="updateResearch(${index}, 'time', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">研究描述</label>
-                        <textarea rows="3" onchange="updateResearch(${index}, 'description', this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none">${item.description}</textarea>
+                        <label class="block text-xs font-medium text-gray-700 mb-1.5">研究描述</label>
+                        <textarea rows="5" onchange="updateResearch(${index}, 'description', this.value)" class="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 resize-y">${item.description}</textarea>
                     </div>
-                    <button onclick="removeResearch(${index})" class="w-full border-2 border-rose-200 text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                    <button onclick="removeResearch(${index})" class="w-full bg-white hover:bg-red-50 text-red-600 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border border-red-200 hover:border-red-300 flex items-center justify-center gap-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                         删除
                     </button>
@@ -1485,64 +1539,21 @@
             }
         }
 
-        // 导出PDF
-        async function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const resume = document.getElementById('resume');
+        // 添加打印功能（推荐使用）
+        function printResume() {
+            // 显示打印提示
+            const shouldContinue = confirm(
+                '打印提示：\n\n' +
+                '1. 在打印对话框中，选择"另存为PDF"或"Microsoft Print to PDF"\n' +
+                '2. 点击"更多设置"，确保取消勾选"页眉和页脚"\n' +
+                '3. 边距选择"无"或"自定义"并设为0\n' +
+                '4. 确保纸张大小为A4\n\n' +
+                '是否继续？'
+            );
 
-            const canvas = await html2canvas(resume, {
-                scale: 3,
-                useCORS: true,
-                logging: false
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-
-            const imgWidth = 210; // A4宽度
-            const pageHeight = 297; // A4高度
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            // 添加容差，避免因为浮点数精度问题产生多余的空白页
-            const tolerance = 1; // 1mm容差
-
-            if (imgHeight <= pageHeight + tolerance) {
-                // 内容在一页内，直接输出
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            } else {
-                // 内容真正超过一页，需要分页
-                let heightLeft = imgHeight;
-                let position = 0;
-
-                while (heightLeft > 0) {
-                    const heightOnPage = Math.min(heightLeft, pageHeight);
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, heightOnPage);
-                    heightLeft -= pageHeight;
-                    position -= pageHeight;
-
-                    if (heightLeft > 0) {
-                        pdf.addPage();
-                    }
-                }
+            if (shouldContinue) {
+                window.print();
             }
-
-            pdf.save('简历.pdf');
-        }
-
-        // 导出图片
-        async function exportImage() {
-            const resume = document.getElementById('resume');
-
-            const canvas = await html2canvas(resume, {
-                scale: 3,
-                useCORS: true,
-                logging: false
-            });
-
-            const link = document.createElement('a');
-            link.download = '简历.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
         }
 
         // 页面加载完成后初始化
