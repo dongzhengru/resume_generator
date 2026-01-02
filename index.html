@@ -509,16 +509,16 @@ Docker 容器化部署</textarea>
                     </div>
                 </div>
 
-                <!-- 工作经历 -->
+                <!-- 实习经历 -->
                 <div class="bg-white rounded-2xl p-5 border border-gray-200/60 shadow-sm shadow-gray-200/50">
                     <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <i data-lucide="briefcase" class="w-4 h-4 text-blue-500"></i>
-                        工作经历
+                        实习经历
                     </h3>
                     <div id="work-list" class="space-y-3"></div>
                     <button onclick="addWork()" class="w-full mt-4 border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                        添加工作经历
+                        添加实习经历
                     </button>
                 </div>
 
@@ -690,11 +690,11 @@ Docker 容器化部署</textarea>
                     <ul class="awards-list" id="resume-skills"></ul>
                 </div>
 
-                <!-- 工作经历 -->
+                <!-- 实习经历 -->
                 <div class="resume-section" id="section-work">
                     <div class="section-title">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
-                        工作经历
+                        实习经历
                     </div>
                     <div id="resume-work"></div>
                 </div>
@@ -816,7 +816,7 @@ Docker 容器化部署</textarea>
         // 模块顺序配置
         let moduleOrder = [
             { id: 'skills', name: '专业技能', section: 'section-skills', toggle: 'toggle-skills', visible: true },
-            { id: 'work', name: '工作经历', section: 'section-work', toggle: 'toggle-work', visible: true },
+            { id: 'work', name: '实习经历', section: 'section-work', toggle: 'toggle-work', visible: true },
             { id: 'project', name: '项目经历', section: 'section-project', toggle: 'toggle-project', visible: true },
             { id: 'awards', name: '荣誉奖项', section: 'section-awards', toggle: 'toggle-awards', visible: true },
             { id: 'research', name: '研究经历', section: 'section-research', toggle: 'toggle-research', visible: true },
@@ -1175,7 +1175,7 @@ Docker 容器化部署</textarea>
             // 专业技能
             document.getElementById('section-skills').classList.toggle('hidden', !resumeData.skills.trim());
 
-            // 工作经历
+            // 实习经历
             const hasWork = resumeData.work.some(w => w.company && w.position);
             document.getElementById('section-work').classList.toggle('hidden', !hasWork);
 
@@ -1285,7 +1285,7 @@ Docker 容器化部署</textarea>
             `).join('');
         }
 
-        // 工作经历
+        // 实习经历
         function addWork() {
             resumeData.work.push({ company: '', position: '', time: '', description: '' });
             renderWork();
